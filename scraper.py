@@ -6,7 +6,6 @@ import sqlite3
 
 urls_name = 'urls.db'
 db_name = 'data.db'
-queue_name = 'queued.db'
 root_url = "https://www.presseportal.de/blaulicht/pm/"
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0'}
@@ -76,6 +75,8 @@ def write_to_db(records):
     conn.commit()
     conn.close()
     
+    
+    
 def count_remaining():
     """
     count_remaining() -> str
@@ -89,6 +90,8 @@ def count_remaining():
     count = str(c.fetchall()[0][0])
     conn.close()  
     print(count+' '*50)
+    
+    
     
     
 def remove_from_urls(records):
