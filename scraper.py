@@ -176,8 +176,11 @@ def main(max_size=100):
         write_to_db(records)
         remove_from_urls(records)
         stop_time = time.time()
-        records_per_hour = (60**2)*((stop_time - start_time)/len(records))
-        print("Scraping speed: " + str(round(records_per_hour,2)) + " (records/h)")
         print("Items remaining: " +str(count_remaining()))
-        print("Hours to completion: " +str(round(count_remaining()/records_per_hour)))
+        if len(records) > 0:
+            records_per_hour = (60**2)*((stop_time - start_time)/len(records))
+            print("Scraping speed: " + str(round(records_per_hour,2)) + " (records/h)")
+            print("Hours to completion: " +str(round(count_remaining()/records_per_hour)))
+        else:
+            print("Nothing scraped.")
         queue = load_queue(max_size) # refill queue
