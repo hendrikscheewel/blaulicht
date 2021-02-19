@@ -3,6 +3,7 @@ import numpy as np
 import time
 import os
 import sqlite3
+from requests.exceptions import Timeout
 
 urls_name = 'urls.db'
 db_name = 'data.db'
@@ -87,9 +88,9 @@ def count_remaining():
     conn = sqlite3.connect(urls_name)
     c = conn.cursor()
     c.execute('''SELECT COUNT(*) FROM data''')
-    count = str(c.fetchall()[0][0])
+    count = int(c.fetchall()[0][0])
     conn.close()  
-    print(count+' '*50)
+    return(count)
     
     
     
@@ -128,7 +129,7 @@ def scrape(station_id, article_id):
     url = root_url + str(station_id) + "/" + str(article_id) # compose url
     print(url+' '*50,end='\r')
     
-    response = s.get(url, headers = headers) # get data from website
+    response = s.get(url, headers = headers, timeout=10) # get data from website
     html = response.text
     return(html)
 
@@ -148,19 +149,35 @@ def main(max_size=100):
     
     while (len(queue) > 0):
         records = [] # empty records
+        start_time = time.time()
         
         while len(queue) > 0:
-            # select random item from queue and remove it
+            # select random item from queue
             station_id, article_id = queue[np.random.choice(range(len(queue)))]
-            queue.remove((station_id, article_id))
             
-            # scrape that item
-            html = scrape(station_id, article_id)
+            try:
+                # scrape that item
+                html = scrape(station_id, article_id)
 
-            # add scraped item to records
-            records += [(station_id, article_id, html)]
+                # add scraped item to records
+                records += [(station_id, article_id, html)]
+
+                # remove the item upon success
+                queue.remove((station_id, article_id))
+            
+            except Timeout:
+                print("Timeout error.")
+                
+            except:
+                print("Uncaught error.")
+                break
+
 
         write_to_db(records)
         remove_from_urls(records)
-        count_remaining()
+        stop_time = time.time()
+        records_per_hour = (60**2)*((stop_time - start_time)/len(records))
+        print("Scraping speed: " + str(round(records_per_hour,2)) + " (records/h)")
+        print("Items remaining: " +str(count_remaining()))
+        print("Hours to completion: " +str(round(count_remaining()/records_per_hour)))
         queue = load_queue(max_size) # refill queue
