@@ -111,7 +111,7 @@ def remove_from_urls(records):
     # delete from urls
     conn = sqlite3.connect(urls_name)
     c = conn.cursor()
-    c.executemany('''DELETE FROM data WHERE station_id = ? AND article_id = ?''',remove_list)
+    c.executemany('''DELETE FROM data WHERE (station_id = ? AND article_id = ?)''',remove_list)
     conn.commit()
     conn.close()  
     
